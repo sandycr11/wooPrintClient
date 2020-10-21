@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using System.Linq;
-using wooPrint.Core.Utils;
+using wooPrint.DesktopApp.Utils;
 using System.IO;
 
 namespace wooPrint.DesktopApp

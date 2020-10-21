@@ -2,10 +2,9 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
+using wooPrint.DesktopApp.ApiClient.Models;
 
-using wooPrint.Core.ApiClient.Models;
-
-namespace wooPrint.Core.Utils
+namespace wooPrint.DesktopApp.Utils
 {
     /// <summary>
     ///
@@ -36,7 +35,7 @@ namespace wooPrint.Core.Utils
                 PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
                 _orderInfo = orderInfo;
 
-                Uri apiUrl = new Uri(Configuration.WooPrintConfiguration.Config().ApiService.Url);
+                Uri apiUrl = new Uri(Configuration.ConfigurationManager.GetInstance().Config.ApiUrl);
                 _shopName = (apiUrl.Segments != null && apiUrl.Segments.Length > 1) ? apiUrl.Segments[1].Trim('/') : "";
                 _shopName = _shopName.Replace("-", " ");
                 _shopName = _shopName.ToUpperInvariant();
@@ -69,8 +68,8 @@ namespace wooPrint.Core.Utils
 
             Graphics graphics = e.Graphics;
 
-            Font font8 = new Font("Arial", 8, FontStyle.Bold);
-            Font font10 = new Font("Arial", 10, FontStyle.Bold);
+            Font font8 = new Font("Lucida Console", 8, FontStyle.Regular);
+            Font font10 = new Font("Lucida Console", 10, FontStyle.Bold);
 
             float leading = 4;
             float lineheight8 = font8.GetHeight() + leading;

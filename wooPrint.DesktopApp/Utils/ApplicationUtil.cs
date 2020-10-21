@@ -1,24 +1,14 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace wooPrint.Core.Utils
+namespace wooPrint.DesktopApp.Utils
 {
     /// <summary>
     ///     Static class that contains some utils methods for applications management.
     /// </summary>
     public static class ApplicationUtil
     {
-        private static readonly List<string> SoftwaresInformationRegistryKeys = new List<string>
-        {
-            "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-            "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
-        };
-
         /// <summary>
         ///
         /// </summary>

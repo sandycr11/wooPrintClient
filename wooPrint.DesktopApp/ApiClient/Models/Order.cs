@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace wooPrint.Core.ApiClient.Models
+namespace wooPrint.DesktopApp.ApiClient.Models
 {
     public class Billing
     {

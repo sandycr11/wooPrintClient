@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace wooPrint.Core.ApiClient.Models
+namespace wooPrint.DesktopApp.ApiClient.Models
 {
     /// <summary>
     ///

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace wooPrint.Core.Utils
+namespace wooPrint.DesktopApp.Utils
 {
     /// <summary>
     /// Utility class for perform validations.

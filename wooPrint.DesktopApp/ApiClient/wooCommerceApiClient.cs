@@ -3,19 +3,25 @@ using Flurl.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using wooPrint.Core.ApiClient.Models;
 using System.Diagnostics;
 using System.Linq;
+using wooPrint.DesktopApp.ApiClient.Models;
 
-namespace wooPrint.Core.ApiClient
+namespace wooPrint.DesktopApp.ApiClient
 {
     /// <summary>
     ///
     /// </summary>
-    public class wooCommerceApiClient
+    public class WooCommerceApiClient
     {
-        private static wooCommerceApiClient _instance;
-        private const int ApiTimeOut = 30;
+        private static WooCommerceApiClient _instance;
+
+        /// <summary>
+        ///
+        /// </summary>
+        private WooCommerceApiClient()
+        {
+        }
 
         /// <summary>
         ///
@@ -24,11 +30,11 @@ namespace wooPrint.Core.ApiClient
         /// <param name="apiKey"></param>
         /// <param name="apiSecret"></param>
         /// <returns></returns>
-        public static wooCommerceApiClient GetInstance()
+        public static WooCommerceApiClient GetInstance()
         {
             if (_instance == null)
             {
-                _instance = new wooCommerceApiClient();
+                _instance = new WooCommerceApiClient();
             }
             return _instance;
         }
@@ -41,17 +47,17 @@ namespace wooPrint.Core.ApiClient
         {
             try
             {
-                string url = Configuration.WooPrintConfiguration.Config().ApiService.Url;
+                string url = Configuration.ConfigurationManager.GetInstance().Config.ApiUrl;
 
                 url = url.AppendPathSegment("orders")
-                              .SetQueryParam("consumer_key", Configuration.WooPrintConfiguration.Config().ApiService.APIKey)
-                              .SetQueryParam("consumer_secret", Configuration.WooPrintConfiguration.Config().ApiService.APISecret)
+                              .SetQueryParam("consumer_key", Configuration.ConfigurationManager.GetInstance().Config.ApiKey)
+                              .SetQueryParam("consumer_secret", Configuration.ConfigurationManager.GetInstance().Config.ApiSecret)
                               .SetQueryParam("status", "completed");
 
                 if (!string.IsNullOrWhiteSpace(afterDate))
                     url = url.SetQueryParam("after", afterDate);
 
-                var orders = await url.WithTimeout(ApiTimeOut)
+                var orders = await url.WithTimeout(Configuration.ConfigurationManager.GetInstance().Config.ApiTimeout)
                     .GetJsonAsync<List<Order>>();
 
                 return orders;
@@ -72,13 +78,13 @@ namespace wooPrint.Core.ApiClient
         {
             try
             {
-                var notes = await Configuration.WooPrintConfiguration.Config().ApiService.Url
+                var notes = await Configuration.ConfigurationManager.GetInstance().Config.ApiUrl
                .AppendPathSegment("orders/" + orderId + "/notes")
-               .SetQueryParam("consumer_key", Configuration.WooPrintConfiguration.Config().ApiService.APIKey)
-               .SetQueryParam("consumer_secret", Configuration.WooPrintConfiguration.Config().ApiService.APISecret)
+               .SetQueryParam("consumer_key", Configuration.ConfigurationManager.GetInstance().Config.ApiKey)
+               .SetQueryParam("consumer_secret", Configuration.ConfigurationManager.GetInstance().Config.ApiSecret)
                .SetQueryParam("status", "completed")
                .SetQueryParam("type", "internal")
-               .WithTimeout(ApiTimeOut)
+               .WithTimeout(Configuration.ConfigurationManager.GetInstance().Config.ApiTimeout)
                .GetJsonAsync<List<Note>>();
 
                 var allNotes = notes.ToArray();
@@ -101,11 +107,11 @@ namespace wooPrint.Core.ApiClient
         {
             try
             {
-                var result = await Configuration.WooPrintConfiguration.Config().ApiService.Url
+                var result = await Configuration.ConfigurationManager.GetInstance().Config.ApiUrl
                     .AppendPathSegment("orders/" + orderId + "/notes")
-                    .SetQueryParam("consumer_key", Configuration.WooPrintConfiguration.Config().ApiService.APIKey)
-                    .SetQueryParam("consumer_secret", Configuration.WooPrintConfiguration.Config().ApiService.APISecret)
-                    .WithTimeout(ApiTimeOut)
+                    .SetQueryParam("consumer_key", Configuration.ConfigurationManager.GetInstance().Config.ApiKey)
+                    .SetQueryParam("consumer_secret", Configuration.ConfigurationManager.GetInstance().Config.ApiSecret)
+                    .WithTimeout(Configuration.ConfigurationManager.GetInstance().Config.ApiTimeout)
                     .PostJsonAsync(new
                     {
                         note = "Procesado"

@@ -1,17 +1,16 @@
-﻿using System;
-using System.Windows.Forms;
-using System.Threading.Tasks;
+﻿using MetroFramework;
 using MetroFramework.Forms;
-using MetroFramework;
-using wooPrint.Core.Configuration;
-using System.Diagnostics;
-using wooPrint.Core.Utils;
-using System.Threading;
 using Quartz;
-using wooPrint.DesktopApp.Managers;
-
 using Quartz.Impl;
+using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using wooPrint.DesktopApp.Configuration;
+using wooPrint.DesktopApp.Managers;
+using wooPrint.DesktopApp.Utils;
 
 namespace wooPrint.DesktopApp
 {
@@ -27,6 +26,56 @@ namespace wooPrint.DesktopApp
             InitializeComponent();
             toolStripMenuItemExit.Click += (e, o) => { FromSystemTray(true); };
             FromSystemTray();
+        }
+
+        private delegate void Function();
+
+        private void FromSystemTray(bool closing = false)
+        {
+            if (closing)
+            {
+                Application.Exit();
+            }
+            else
+            {
+                Show();
+                BringToFront();
+
+                ShowIcon = true;
+                ShowInTaskbar = true;
+                TopMost = true;
+                WindowState = FormWindowState.Normal;
+
+                Refresh();
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        private void LoadConfiguration()
+        {
+            try
+            {
+                metroTextBoxUrl.Text = ConfigurationManager.GetInstance().Config.ApiUrl;
+                metroTextBoxApiKey.Text = ConfigurationManager.GetInstance().Config.ApiKey;
+                metroTextBoxApiSecret.Text = ConfigurationManager.GetInstance().Config.ApiSecret;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.ToString());
+                MetroMessageBox.Show(this, "Ha ocurrido un error cargando la configuración.", "",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, 140);
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason != CloseReason.UserClosing)
+                return;
+
+            e.Cancel = true;
+            ToSystemTray();
         }
 
         /// <summary>
@@ -50,25 +99,12 @@ namespace wooPrint.DesktopApp
             SaveConfiguration();
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        private void LoadConfiguration()
+        private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
-            try
-            {
-                var apiServerConfig = WooPrintConfiguration.Config().ApiService;
+            if (e.Button == MouseButtons.Right)
+                return;
 
-                metroTextBoxUrl.Text = apiServerConfig.Url;
-                metroTextBoxApiKey.Text = apiServerConfig.APIKey;
-                metroTextBoxApiSecret.Text = apiServerConfig.APISecret;
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError(ex.ToString());
-                MetroMessageBox.Show(this, "Ha ocurrido un error cargando la configuración.", "",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, 140);
-            }
+            FromSystemTray();
         }
 
         /// <summary>
@@ -80,11 +116,11 @@ namespace wooPrint.DesktopApp
             {
                 try
                 {
-                    WooPrintConfiguration.Config().ApiService.Url = metroTextBoxUrl.Text;
-                    WooPrintConfiguration.Config().ApiService.APIKey = metroTextBoxApiKey.Text;
-                    WooPrintConfiguration.Config().ApiService.APISecret = metroTextBoxApiSecret.Text;
+                    ConfigurationManager.GetInstance().Config.ApiUrl = metroTextBoxUrl.Text;
+                    ConfigurationManager.GetInstance().Config.ApiKey = metroTextBoxApiKey.Text;
+                    ConfigurationManager.GetInstance().Config.ApiSecret = metroTextBoxApiSecret.Text;
 
-                    WooPrintConfiguration.Config().Save();
+                    ConfigurationManager.GetInstance().Save();
                 }
                 catch (Exception ex)
                 {
@@ -95,54 +131,6 @@ namespace wooPrint.DesktopApp
             }));
 
             saveThread.Start();
-        }
-
-        private void FromSystemTray(bool closing = false)
-        {
-            if (closing)
-            {
-                Application.Exit();
-            }
-            else
-            {
-                Show();
-                BringToFront();
-
-                ShowIcon = true;
-                ShowInTaskbar = true;
-                TopMost = true;
-                WindowState = FormWindowState.Normal;
-
-                Refresh();
-            }
-        }
-
-        private void ToSystemTray()
-        {
-            WindowState = FormWindowState.Minimized;
-            ShowIcon = false;
-            ShowInTaskbar = false;
-            TopMost = false;
-
-            Hide();
-            Refresh();
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (e.CloseReason != CloseReason.UserClosing)
-                return;
-
-            e.Cancel = true;
-            ToSystemTray();
-        }
-
-        private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-                return;
-
-            FromSystemTray();
         }
 
         /// <summary>
@@ -189,6 +177,17 @@ namespace wooPrint.DesktopApp
             }
         }
 
+        private void ToSystemTray()
+        {
+            WindowState = FormWindowState.Minimized;
+            ShowIcon = false;
+            ShowInTaskbar = false;
+            TopMost = false;
+
+            Hide();
+            Refresh();
+        }
+
         #region Windows Message Handler
 
         protected override void WndProc(ref Message m)
@@ -204,7 +203,5 @@ namespace wooPrint.DesktopApp
         }
 
         #endregion Windows Message Handler
-
-        private delegate void Function();
     }
 }
