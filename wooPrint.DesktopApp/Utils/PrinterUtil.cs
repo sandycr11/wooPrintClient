@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.IO;
 using wooPrint.DesktopApp.ApiClient.Models;
 
 namespace wooPrint.DesktopApp.Utils
@@ -24,15 +25,6 @@ namespace wooPrint.DesktopApp.Utils
         {
             try
             {
-                PrintDocument pdoc = new PrintDocument
-                {
-                    PrinterSettings = new PrinterSettings
-                    {
-                        Copies = 1,
-                    }
-                };
-
-                PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
                 _orderInfo = orderInfo;
 
                 Uri apiUrl = new Uri(Configuration.ConfigurationManager.GetInstance().Config.ApiUrl);
@@ -40,14 +32,20 @@ namespace wooPrint.DesktopApp.Utils
                 _shopName = _shopName.Replace("-", " ");
                 _shopName = _shopName.ToUpperInvariant();
 
+                PrinterSettings ps = new PrinterSettings();
+                PrintDocument pdoc = new PrintDocument();
+                pdoc.PrinterSettings = ps;
+                pdoc.PrinterSettings.Copies = 1;
+                //pdoc.DefaultPageSettings.Landscape = false;
+                //pdoc.DefaultPageSettings.PaperSize = new PaperSize("80 mm", 300, 13000);
+                pdoc.DefaultPageSettings.Margins = new Margins(10, 10, 10, 10);
+
+                PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
+
                 pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
 
-                //System.Windows.Forms.PrintPreviewDialog printDlg = new System.Windows.Forms.PrintPreviewDialog();
-                //printDlg.Document = pdoc;
-                //printDlg.ShowDialog();
-                //return "";
-
                 pdoc.Print();
+
                 return string.Empty;
             }
             catch (Exception ex)
@@ -78,9 +76,9 @@ namespace wooPrint.DesktopApp.Utils
             int char8Qty = (int)(PageWidth / 8);
             int char10Qty = (int)(PageWidth / 10);
 
-            float startX = 0;
+            float startX = 6;
             float startY = leading;
-            float Offset = 0;
+            float Offset = 10;
 
             StringFormat formatLeft = new StringFormat(StringFormatFlags.NoClip);
             StringFormat formatCenter = new StringFormat(formatLeft);
@@ -124,11 +122,11 @@ namespace wooPrint.DesktopApp.Utils
                 var item = _orderInfo.line_items[i];
 
                 var itemName = item.name;
-                if (itemName.Length > 36)
-                    itemName = itemName.Substring(0, 36) + "...";
+                if (itemName.Length > 24)
+                    itemName = itemName.Substring(0, 24) + ".";
 
                 layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-                graphics.DrawString(itemName + "  x  " + item.quantity, font8, brush, layout, formatLeft);
+                graphics.DrawString(itemName + "  x" + item.quantity, font8, brush, layout, formatLeft);
 
                 layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
                 graphics.DrawString(item.total + " " + euro, font8, brush, layout, formatRight);
