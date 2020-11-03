@@ -38,13 +38,6 @@ namespace wooPrint.DesktopApp
             }
             else
             {
-                // create logger in application events
-                Trace.Listeners.Add(new EventLogTraceListener(new EventLog
-                {
-                    Log = "wooPrint",
-                    Source = "WooCommerce Print Application"
-                }));
-
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new MainForm());
