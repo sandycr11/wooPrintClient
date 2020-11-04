@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.IO;
+using System.Linq;
+using System.Text;
 using wooPrint.DesktopApp.ApiClient.Models;
 
 namespace wooPrint.DesktopApp.Utils
@@ -36,8 +38,6 @@ namespace wooPrint.DesktopApp.Utils
                 PrintDocument pdoc = new PrintDocument();
                 pdoc.PrinterSettings = ps;
                 pdoc.PrinterSettings.Copies = 1;
-                //pdoc.DefaultPageSettings.Landscape = false;
-                //pdoc.DefaultPageSettings.PaperSize = new PaperSize("80 mm", 300, 13000);
                 pdoc.DefaultPageSettings.Margins = new Margins(10, 10, 10, 10);
 
                 PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
@@ -106,13 +106,13 @@ namespace wooPrint.DesktopApp.Utils
             graphics.DrawString("".PadRight(char8Qty, '-'), font8, brush, layout, formatCenter);
             Offset = Offset + lineheight8;
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("ORDER RECEIPT", font8, brush, layout, formatCenter);
+            graphics.DrawString("RECIBO DEL PEDIDO", font8, brush, layout, formatCenter);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Number: " + _orderInfo.number, font8, brush, layout, formatLeft);
+            graphics.DrawString("Número: " + _orderInfo.number, font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Date: " + _orderInfo.date_created.ToString("dd/MM/yyyy"), font8, brush, layout, formatRight);
+            graphics.DrawString("Fecha: " + _orderInfo.date_created.ToString("dd/MM/yyyy"), font8, brush, layout, formatRight);
             Offset += lineheight8;
             Offset += lineheight8;
 
@@ -143,19 +143,19 @@ namespace wooPrint.DesktopApp.Utils
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Shipping: ", font8, brush, layout, formatLeft);
+            graphics.DrawString("Envío: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString(_orderInfo.shipping_total + " " + euro, font8, brush, layout, formatRight);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Tax: ", font8, brush, layout, formatLeft);
+            graphics.DrawString("Impuesto: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString(_orderInfo.total_tax + " " + euro, font8, brush, layout, formatRight);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Payment Method: ", font8, brush, layout, formatLeft);
+            graphics.DrawString("Método de Pago: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString(_orderInfo.payment_method_title, font8, brush, layout, formatRight);
             Offset += lineheight8;
@@ -172,18 +172,58 @@ namespace wooPrint.DesktopApp.Utils
             graphics.DrawString("".PadRight(char8Qty, '-'), font8, brush, layout, formatCenter);
             Offset = Offset + lineheight8;
 
-            //// ORDER DETAILS
-            //layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            //graphics.DrawString("CUSTOMER DETAILS", font8, brush, layout, formatCenter);
-            //Offset += lineheight8;
-            //Offset += lineheight8;
+            // ORDER DETAILS
+            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+            graphics.DrawString("DETALLES", font8, brush, layout, formatCenter);
+            Offset += lineheight8;
 
-            //layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            //graphics.DrawString("".PadRight(char8Qty, '-'), font8, brush, layout, formatCenter);
-            //Offset = Offset + lineheight8;
+            if (_orderInfo.meta_data != null && _orderInfo.meta_data.Count > 0)
+            {
+                var deliveryDateObject = _orderInfo.meta_data
+                    .Where(i => i.key.Equals("pi_delivery_date", StringComparison.InvariantCultureIgnoreCase))
+                    .FirstOrDefault();
+                string deliveryDate = deliveryDateObject != null ? deliveryDateObject.value : "";
+                if (!string.IsNullOrWhiteSpace(deliveryDate))
+                {
+                    layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                    graphics.DrawString("Fecha de Recogida: ", font8, brush, layout, formatLeft);
+                    layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                    graphics.DrawString(deliveryDate, font8, brush, layout, formatRight);
+                    Offset += lineheight8;
+                }
+
+                var deliveryTimeObject = _orderInfo.meta_data
+                   .Where(i => i.key.Equals("pi_delivery_time", StringComparison.InvariantCultureIgnoreCase))
+                   .FirstOrDefault();
+                string deliveryTime = deliveryTimeObject != null ? deliveryTimeObject.value : "";
+                if (!string.IsNullOrWhiteSpace(deliveryTime))
+                {
+                    layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                    graphics.DrawString("Hora de Recogida: ", font8, brush, layout, formatLeft);
+                    layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                    graphics.DrawString(deliveryTime, font8, brush, layout, formatRight);
+                    Offset += lineheight8;
+                }
+            }
+
+            Offset += lineheight8;
+            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+            graphics.DrawString("Notas: ", font8, brush, layout, formatLeft);
+            Offset += lineheight8;
+            var noteLines = SplitLineToMultiline(_orderInfo.customer_note, 40);
+            foreach (var line in noteLines)
+            {
+                layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                graphics.DrawString(line, font8, brush, layout, formatLeft);
+                Offset += lineheight8;
+            }
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("BILLING ADDRESS", font8, brush, layout, formatCenter);
+            graphics.DrawString("".PadRight(char8Qty, '-'), font8, brush, layout, formatCenter);
+            Offset = Offset + lineheight8;
+
+            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+            graphics.DrawString("DIRECCION DE FACTURACION", font8, brush, layout, formatCenter);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -226,7 +266,7 @@ namespace wooPrint.DesktopApp.Utils
             Offset = Offset + lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("SHIPPING METHOD", font8, brush, layout, formatCenter);
+            graphics.DrawString("METODO DE ENVIO", font8, brush, layout, formatCenter);
             Offset += lineheight8;
 
             if (_orderInfo.shipping_lines.Count > 0)
@@ -241,14 +281,46 @@ namespace wooPrint.DesktopApp.Utils
             graphics.DrawString("THB", font8, brush, layout, formatCenter);
             Offset += lineheight8;
 
-            //layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            //graphics.DrawString("Powered by BizSwoop", font8, brush, layout, formatCenter);
-            //Offset += lineheight8;
-            //layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            //graphics.DrawString("www.bizwoop.com/print", font8, brush, layout, formatCenter);
-
             font8.Dispose();
             font10.Dispose();
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="rowLength"></param>
+        /// <returns></returns>
+        public static string[] SplitLineToMultiline(string input, int rowLength)
+        {
+            List<string> result = new List<string>();
+            StringBuilder line = new StringBuilder();
+
+            Stack<string> stack = new Stack<string>(input.Split(' '));
+
+            while (stack.Count > 0)
+            {
+                var word = stack.Pop();
+                if (word.Length > rowLength)
+                {
+                    string head = word.Substring(0, rowLength);
+                    string tail = word.Substring(rowLength);
+
+                    word = head;
+                    stack.Push(tail);
+                }
+
+                if (line.Length + word.Length > rowLength)
+                {
+                    result.Insert(0, line.ToString());
+                    line.Clear();
+                }
+
+                line.Insert(0, word + " ");
+            }
+
+            result.Insert(0, line.ToString());
+            return result.ToArray();
         }
     }
 }

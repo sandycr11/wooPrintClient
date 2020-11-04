@@ -119,6 +119,7 @@ namespace wooPrint.DesktopApp
                     ConfigurationManager.GetInstance().Config.ApiUrl = metroTextBoxUrl.Text;
                     ConfigurationManager.GetInstance().Config.ApiKey = metroTextBoxApiKey.Text;
                     ConfigurationManager.GetInstance().Config.ApiSecret = metroTextBoxApiSecret.Text;
+                    ConfigurationManager.GetInstance().Config.LastOrderChecked = "";
 
                     ConfigurationManager.GetInstance().Save();
                 }
