@@ -1,4 +1,5 @@
 ﻿using Quartz;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -90,7 +91,7 @@ namespace wooPrint.DesktopApp.Managers
                         }
                     }
 
-                    cachedDate = completedOrders[0].date_created.ToString("yyyy-MM-dd HH:mm:ss");
+                    cachedDate = completedOrders[0].date_created.Subtract(TimeSpan.FromDays(7)).ToString("yyyy-MM-dd HH:mm:ss");
                     Configuration.ConfigurationManager.GetInstance().Config.LastOrderChecked = cachedDate;
                     Configuration.ConfigurationManager.GetInstance().Save();
                 };
