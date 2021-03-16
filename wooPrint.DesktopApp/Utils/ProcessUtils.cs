@@ -9,7 +9,12 @@ namespace wooPrint.DesktopApp.Utils
 {
     public static class ProcessUtils
     {
-        public static bool IsProcessRunning(string processName)
+        public const int WM_USER = 0x400;
+        public const int WM_COPYDATA = 0x4A;
+
+        public const string ProcessPassphrase = "restoreWindow";
+
+        private static bool IsProcessRunning(string processName)
         {
             if (string.IsNullOrWhiteSpace(processName))
                 return false;
@@ -17,7 +22,6 @@ namespace wooPrint.DesktopApp.Utils
             try
             {
                 foreach (var proc in Process.GetProcesses())
-                {
                     try
                     {
                         if (proc.ProcessName.Equals(processName, StringComparison.InvariantCultureIgnoreCase))
@@ -27,7 +31,7 @@ namespace wooPrint.DesktopApp.Utils
                     {
                         // ignored
                     }
-                }
+
                 return false;
             }
             catch (Exception ex)
@@ -48,17 +52,16 @@ namespace wooPrint.DesktopApp.Utils
             try
             {
                 foreach (var proc in Process.GetProcesses())
-                {
                     try
                     {
-                        if (proc.MainModule.FileName.Equals(processName, StringComparison.InvariantCultureIgnoreCase))
+                        if (proc.MainModule != null &&
+                            proc.MainModule.FileName.Equals(processName, StringComparison.InvariantCultureIgnoreCase))
                             return true;
                     }
                     catch
                     {
                         // ignored
                     }
-                }
 
                 return false;
             }
@@ -73,17 +76,17 @@ namespace wooPrint.DesktopApp.Utils
         {
             var processList = Process.GetProcesses();
             foreach (var proc in processList)
-            {
                 try
                 {
-                    if (proc.MainModule.ModuleName.Equals(processName, StringComparison.InvariantCultureIgnoreCase))
+                    if (proc.MainModule != null &&
+                        proc.MainModule.ModuleName.Equals(processName, StringComparison.InvariantCultureIgnoreCase))
                         return proc;
                 }
                 catch
                 {
                     // ignored
                 }
-            }
+
             return null;
         }
 
@@ -118,15 +121,8 @@ namespace wooPrint.DesktopApp.Utils
         [DllImport("User32.dll", EntryPoint = "SendMessage")]
         private static extern int SendMessage(int hWnd, int Msg, int wParam, ref COPYDATASTRUCT lParam);
 
-        public const int WM_USER = 0x400;
-        public const int WM_COPYDATA = 0x4A;
-
-        public const string ProcessPassphrase = "restoreWindow";
-
         [DllImport("user32.dll")]
         private static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn, IntPtr lParam);
-
-        private delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
 
         private static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId)
         {
@@ -135,52 +131,42 @@ namespace wooPrint.DesktopApp.Utils
             foreach (ProcessThread thread in Process.GetProcessById(processId).Threads)
                 EnumThreadWindows(thread.Id, (hWnd, lParam) =>
                 {
-                    handles.Add(hWnd); return true;
+                    handles.Add(hWnd);
+                    return true;
                 }, IntPtr.Zero);
 
             return handles;
         }
 
-        public struct COPYDATASTRUCT
-        {
-            public IntPtr dwData;
-            public int cbData;
-
-            [MarshalAs(UnmanagedType.LPStr)]
-            public string lpData;
-        }
-
         /// <summary>
-        /// Send a message to the process.
+        ///     Send a message to the process.
         /// </summary>
         /// <param name="process"></param>
         /// <param name="message"></param>
         /// <returns></returns>
         public static int SendMessageToProcess(Process process, string message)
         {
-            int result = 0;
+            var result = 0;
 
             foreach (var handle in EnumerateProcessWindowHandles(process.Id))
-            {
                 if (handle.ToInt32() > 0)
                 {
-                    byte[] sarr = Encoding.Default.GetBytes(message);
-                    int len = sarr.Length;
+                    var sarr = Encoding.Default.GetBytes(message);
+                    var len = sarr.Length;
 
                     COPYDATASTRUCT cds;
-                    cds.dwData = (IntPtr)100;
+                    cds.dwData = (IntPtr) 100;
                     cds.lpData = message;
                     cds.cbData = len + 1;
 
                     result = result & SendMessage(handle.ToInt32(), WM_COPYDATA, 0, ref cds);
                 }
-            }
 
             return result;
         }
 
         /// <summary>
-        /// Receive a process a message.
+        ///     Receive a process a message.
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -191,14 +177,24 @@ namespace wooPrint.DesktopApp.Utils
             switch (m.Msg)
             {
                 case WM_COPYDATA:
-                    COPYDATASTRUCT mystr = new COPYDATASTRUCT();
-                    Type mytype = mystr.GetType();
-                    mystr = (COPYDATASTRUCT)m.GetLParam(mytype);
+                    var mystr = new COPYDATASTRUCT();
+                    var mytype = mystr.GetType();
+                    mystr = (COPYDATASTRUCT) m.GetLParam(mytype);
                     message = mystr.lpData;
                     break;
             }
 
             return message;
+        }
+
+        private delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
+
+        public struct COPYDATASTRUCT
+        {
+            public IntPtr dwData;
+            public int cbData;
+
+            [MarshalAs(UnmanagedType.LPStr)] public string lpData;
         }
     }
 }

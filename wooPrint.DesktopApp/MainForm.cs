@@ -1,13 +1,13 @@
-﻿using MetroFramework;
-using MetroFramework.Forms;
-using Quartz;
-using Quartz.Impl;
-using System;
+﻿using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MetroFramework;
+using MetroFramework.Forms;
+using Quartz;
+using Quartz.Impl;
 using wooPrint.DesktopApp.Configuration;
 using wooPrint.DesktopApp.Managers;
 using wooPrint.DesktopApp.Utils;
@@ -15,7 +15,6 @@ using wooPrint.DesktopApp.Utils;
 namespace wooPrint.DesktopApp
 {
     /// <summary>
-    ///
     /// </summary>
     public partial class MainForm : MetroForm
     {
@@ -27,8 +26,6 @@ namespace wooPrint.DesktopApp
             toolStripMenuItemExit.Click += (e, o) => { FromSystemTray(true); };
             FromSystemTray();
         }
-
-        private delegate void Function();
 
         private void FromSystemTray(bool closing = false)
         {
@@ -51,7 +48,6 @@ namespace wooPrint.DesktopApp
         }
 
         /// <summary>
-        ///
         /// </summary>
         private void LoadConfiguration()
         {
@@ -79,7 +75,6 @@ namespace wooPrint.DesktopApp
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -90,7 +85,6 @@ namespace wooPrint.DesktopApp
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -108,11 +102,10 @@ namespace wooPrint.DesktopApp
         }
 
         /// <summary>
-        ///
         /// </summary>
         private void SaveConfiguration()
         {
-            var saveThread = new Thread(new ThreadStart(() =>
+            var saveThread = new Thread(() =>
             {
                 try
                 {
@@ -129,13 +122,12 @@ namespace wooPrint.DesktopApp
                     MetroMessageBox.Show(this, "Ha ocurrido un error guardando la configuración.", "",
                         MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, 140);
                 }
-            }));
+            });
 
             saveThread.Start();
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <returns></returns>
         private async Task<bool> StartWoocommerceWatching()
@@ -196,13 +188,13 @@ namespace wooPrint.DesktopApp
             var messageResult = ProcessUtils.ReceiveMessage(ref m);
             if (!string.IsNullOrWhiteSpace(messageResult)
                 && messageResult.Equals(ProcessUtils.ProcessPassphrase, StringComparison.InvariantCultureIgnoreCase))
-            {
                 FromSystemTray();
-            }
 
             base.WndProc(ref m);
         }
 
         #endregion Windows Message Handler
+
+        private delegate void Function();
     }
 }

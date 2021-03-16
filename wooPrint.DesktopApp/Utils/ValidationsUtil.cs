@@ -16,8 +16,7 @@ namespace wooPrint.DesktopApp.Utils
         /// <returns></returns>
         public static bool IsValidTimeout(string text, int maxTimeOut = 600)
         {
-            int timeoutNumber;
-            var parseResult = int.TryParse(text, out timeoutNumber);
+            var parseResult = int.TryParse(text, out var timeoutNumber);
             if (!parseResult)
                 return false;
 
@@ -31,8 +30,7 @@ namespace wooPrint.DesktopApp.Utils
         /// <returns></returns>
         public static bool IsValidUrl(string text)
         {
-            Uri uriResult;
-            return Uri.TryCreate(text, UriKind.Absolute, out uriResult);
+            return Uri.TryCreate(text, UriKind.Absolute, out _);
         }
 
         /// <summary>

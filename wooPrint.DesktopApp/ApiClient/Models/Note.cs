@@ -3,7 +3,6 @@
 namespace wooPrint.DesktopApp.ApiClient.Models
 {
     /// <summary>
-    ///
     /// </summary>
     public class Note
     {

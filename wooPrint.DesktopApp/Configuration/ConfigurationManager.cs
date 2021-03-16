@@ -1,8 +1,7 @@
-﻿using SharpConfig;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using SharpConfig;
 
 namespace wooPrint.DesktopApp.Configuration
 {
@@ -11,11 +10,10 @@ namespace wooPrint.DesktopApp.Configuration
         private static string _filePath;
         private static ConfigurationManager _instance;
 
-        public WooPrintConfiguration Config { get; set; }
-
         private ConfigurationManager()
         {
-            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "wooPrint");
+            var appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "wooPrint");
 
             if (!Directory.Exists(appDataFolder))
                 Directory.CreateDirectory(appDataFolder);
@@ -24,21 +22,18 @@ namespace wooPrint.DesktopApp.Configuration
             Load();
         }
 
+        public WooPrintConfiguration Config { get; set; }
+
         /// <summary>
-        ///
         /// </summary>
         /// <returns></returns>
         public static ConfigurationManager GetInstance()
         {
-            if (_instance == null)
-            {
-                _instance = new ConfigurationManager();
-            }
+            if (_instance == null) _instance = new ConfigurationManager();
             return _instance;
         }
 
         /// <summary>
-        ///
         /// </summary>
         private void Load()
         {
@@ -62,7 +57,6 @@ namespace wooPrint.DesktopApp.Configuration
         }
 
         /// <summary>
-        ///
         /// </summary>
         public void Save()
         {
@@ -83,32 +77,32 @@ namespace wooPrint.DesktopApp.Configuration
     }
 
     /// <summary>
-    /// Define the Woo Print configuration.
+    ///     Define the Woo Print configuration.
     /// </summary>
     public class WooPrintConfiguration
     {
         /// <summary>
-        /// Define the API URl.
+        ///     Define the API URl.
         /// </summary>
         public string ApiUrl { get; set; } = "";
 
         /// <summary>
-        /// Define the API Key.
+        ///     Define the API Key.
         /// </summary>
         public string ApiKey { get; set; } = "";
 
         /// <summary>
-        /// Define the API Secret
+        ///     Define the API Secret
         /// </summary>
         public string ApiSecret { get; set; } = "";
 
         /// <summary>
-        /// Define the API request timeout.
+        ///     Define the API request timeout.
         /// </summary>
         public int ApiTimeout { get; set; } = 30;
 
         /// <summary>
-        /// Store the date od the last checked order.
+        ///     Store the date od the last checked order.
         /// </summary>
         public string LastOrderChecked { get; set; } = "";
     }

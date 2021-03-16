@@ -6,43 +6,44 @@ using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using wooPrint.DesktopApp.ApiClient.Models;
+using wooPrint.DesktopApp.Configuration;
 
 namespace wooPrint.DesktopApp.Utils
 {
     /// <summary>
-    ///
     /// </summary>
     public static class PrinterUtil
     {
-        private static float PageWidth = 0;
-        private static Order _orderInfo = null;
+        private static float PageWidth;
+        private static Order _orderInfo;
         private static string _shopName = "";
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="orderInfo"></param>
         /// <returns></returns>
-        public static string PrintTcket(Order orderInfo)
+        public static string PrintTicket(Order orderInfo)
         {
             try
             {
                 _orderInfo = orderInfo;
 
-                Uri apiUrl = new Uri(Configuration.ConfigurationManager.GetInstance().Config.ApiUrl);
-                _shopName = (apiUrl.Segments != null && apiUrl.Segments.Length > 1) ? apiUrl.Segments[1].Trim('/') : "";
+                var apiUrl = new Uri(ConfigurationManager.GetInstance().Config.ApiUrl);
+                _shopName = apiUrl.Segments.Length > 1 ? apiUrl.Segments[1].Trim('/') : "";
                 _shopName = _shopName.Replace("-", " ");
                 _shopName = _shopName.ToUpperInvariant();
 
-                PrinterSettings ps = new PrinterSettings();
-                PrintDocument pdoc = new PrintDocument();
-                pdoc.PrinterSettings = ps;
+                var ps = new PrinterSettings();
+                var pdoc = new PrintDocument
+                {
+                    PrinterSettings = ps
+                };
                 pdoc.PrinterSettings.Copies = 1;
                 pdoc.DefaultPageSettings.Margins = new Margins(10, 10, 10, 10);
 
                 PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
 
-                pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
+                pdoc.PrintPage += pdoc_PrintPage;
 
                 pdoc.Print();
 
@@ -56,42 +57,41 @@ namespace wooPrint.DesktopApp.Utils
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private static void pdoc_PrintPage(object sender, PrintPageEventArgs e)
         {
-            char euro = '€';
+            var euro = '€';
 
-            Graphics graphics = e.Graphics;
+            var graphics = e.Graphics;
 
-            Font font8 = new Font("Lucida Console", 8, FontStyle.Regular);
-            Font font10 = new Font("Lucida Console", 10, FontStyle.Bold);
+            var font8 = new Font("Lucida Console", 8, FontStyle.Regular);
+            var font10 = new Font("Lucida Console", 10, FontStyle.Bold);
 
             float leading = 4;
-            float lineheight8 = font8.GetHeight() + leading;
-            float lineheight10 = font10.GetHeight() + leading;
+            var lineheight8 = font8.GetHeight() + leading;
+            var lineheight10 = font10.GetHeight() + leading;
 
-            int char8Qty = (int)(PageWidth / 8);
-            int char10Qty = (int)(PageWidth / 10);
+            var char8Qty = (int) (PageWidth / 8);
+            var char10Qty = (int) (PageWidth / 10);
 
             float startX = 6;
-            float startY = leading;
+            var startY = leading;
             float Offset = 10;
 
-            StringFormat formatLeft = new StringFormat(StringFormatFlags.NoClip);
-            StringFormat formatCenter = new StringFormat(formatLeft);
-            StringFormat formatRight = new StringFormat(formatLeft);
+            var formatLeft = new StringFormat(StringFormatFlags.NoClip);
+            var formatCenter = new StringFormat(formatLeft);
+            var formatRight = new StringFormat(formatLeft);
 
             formatCenter.Alignment = StringAlignment.Center;
             formatRight.Alignment = StringAlignment.Far;
             formatLeft.Alignment = StringAlignment.Near;
 
-            SizeF layoutSize = new SizeF(PageWidth - Offset * 2, lineheight10);
-            RectangleF layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+            var layoutSize = new SizeF(PageWidth - Offset * 2, lineheight10);
+            var layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
 
-            Brush brush = Brushes.Black;
+            var brush = Brushes.Black;
 
             // HEADER
             graphics.DrawString("The House Beer", font10, brush, layout, formatCenter);
@@ -112,12 +112,13 @@ namespace wooPrint.DesktopApp.Utils
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Número: " + _orderInfo.number, font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Fecha: " + _orderInfo.date_created.ToString("dd/MM/yyyy"), font8, brush, layout, formatRight);
+            graphics.DrawString("Fecha: " + _orderInfo.date_created.ToString("dd/MM/yyyy"), font8, brush, layout,
+                formatRight);
             Offset += lineheight8;
             Offset += lineheight8;
 
             // ORDER PRODUCTS
-            for (int i = 0; i < _orderInfo.line_items.Count; i++)
+            for (var i = 0; i < _orderInfo.line_items.Count; i++)
             {
                 var item = _orderInfo.line_items[i];
 
@@ -182,7 +183,7 @@ namespace wooPrint.DesktopApp.Utils
                 var deliveryDateObject = _orderInfo.meta_data
                     .Where(i => i.key.Equals("pi_delivery_date", StringComparison.InvariantCultureIgnoreCase))
                     .FirstOrDefault();
-                string deliveryDate = deliveryDateObject != null ? deliveryDateObject.value : "";
+                var deliveryDate = deliveryDateObject != null ? deliveryDateObject.value : "";
                 if (!string.IsNullOrWhiteSpace(deliveryDate))
                 {
                     layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -193,9 +194,9 @@ namespace wooPrint.DesktopApp.Utils
                 }
 
                 var deliveryTimeObject = _orderInfo.meta_data
-                   .Where(i => i.key.Equals("pi_delivery_time", StringComparison.InvariantCultureIgnoreCase))
-                   .FirstOrDefault();
-                string deliveryTime = deliveryTimeObject != null ? deliveryTimeObject.value : "";
+                    .Where(i => i.key.Equals("pi_delivery_time", StringComparison.InvariantCultureIgnoreCase))
+                    .FirstOrDefault();
+                var deliveryTime = deliveryTimeObject != null ? deliveryTimeObject.value : "";
                 if (!string.IsNullOrWhiteSpace(deliveryTime))
                 {
                     layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -227,7 +228,8 @@ namespace wooPrint.DesktopApp.Utils
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.billing.first_name + " " + _orderInfo.billing.last_name, font8, brush, layout, formatLeft);
+            graphics.DrawString(_orderInfo.billing.first_name + " " + _orderInfo.billing.last_name, font8, brush,
+                layout, formatLeft);
             Offset += lineheight8;
 
             if (!string.IsNullOrWhiteSpace(_orderInfo.billing.company))
@@ -238,11 +240,13 @@ namespace wooPrint.DesktopApp.Utils
             }
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.billing.address_1 + " " + _orderInfo.billing.address_2, font8, brush, layout, formatLeft);
+            graphics.DrawString(_orderInfo.billing.address_1 + " " + _orderInfo.billing.address_2, font8, brush, layout,
+                formatLeft);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.billing.postcode + " " + _orderInfo.billing.city, font8, brush, layout, formatLeft);
+            graphics.DrawString(_orderInfo.billing.postcode + " " + _orderInfo.billing.city, font8, brush, layout,
+                formatLeft);
             Offset += lineheight8;
 
             if (!string.IsNullOrWhiteSpace(_orderInfo.billing.phone))
@@ -275,6 +279,7 @@ namespace wooPrint.DesktopApp.Utils
                 graphics.DrawString(_orderInfo.shipping_lines[0].method_title, font8, brush, layout, formatLeft);
                 Offset += lineheight8;
             }
+
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -286,25 +291,24 @@ namespace wooPrint.DesktopApp.Utils
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="input"></param>
         /// <param name="rowLength"></param>
         /// <returns></returns>
         public static string[] SplitLineToMultiline(string input, int rowLength)
         {
-            List<string> result = new List<string>();
-            StringBuilder line = new StringBuilder();
+            var result = new List<string>();
+            var line = new StringBuilder();
 
-            Stack<string> stack = new Stack<string>(input.Split(' '));
+            var stack = new Stack<string>(input.Split(' '));
 
             while (stack.Count > 0)
             {
                 var word = stack.Pop();
                 if (word.Length > rowLength)
                 {
-                    string head = word.Substring(0, rowLength);
-                    string tail = word.Substring(rowLength);
+                    var head = word.Substring(0, rowLength);
+                    var tail = word.Substring(rowLength);
 
                     word = head;
                     stack.Push(tail);

@@ -1,6 +1,6 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace wooPrint.DesktopApp.Utils
 {
@@ -10,7 +10,6 @@ namespace wooPrint.DesktopApp.Utils
     public static class ApplicationUtil
     {
         /// <summary>
-        ///
         /// </summary>
         /// <param name="appName"></param>
         /// <param name="appPath"></param>

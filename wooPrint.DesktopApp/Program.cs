@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using System.Linq;
 using wooPrint.DesktopApp.Utils;
-using System.IO;
 
 namespace wooPrint.DesktopApp
 {
     internal static class Program
     {
         /// <summary>
-        ///
         /// </summary>
         [STAThread]
         private static void Main()
@@ -23,14 +22,14 @@ namespace wooPrint.DesktopApp
             Application.CurrentCulture = new CultureInfo("es-ES");
 
             // ensure app run at startup
-            ApplicationUtil.SetRunAtStartup("wooPrint", Path.Combine(@AppDomain.CurrentDomain.BaseDirectory, "wooPrint.exe"));
+            ApplicationUtil.SetRunAtStartup("wooPrint",
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wooPrint.exe"));
 
-            bool mutexCreated;
-            var mutex = new Mutex(true, "wooPrint", out mutexCreated);
+            var mutex = new Mutex(true, "wooPrint", out var mutexCreated);
             if (!mutexCreated)
             {
                 // restore the other app window
-                Process[] processes = Process.GetProcessesByName("wooPrint")
+                var processes = Process.GetProcessesByName("wooPrint")
                     .Where(p => p.Id != Process.GetCurrentProcess().Id).ToArray();
 
                 foreach (var p in processes)
@@ -47,10 +46,9 @@ namespace wooPrint.DesktopApp
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <returns></returns>
         [DllImport("user32.dll")]
-        public static extern IntPtr SetProcessDPIAware();
+        private static extern IntPtr SetProcessDPIAware();
     }
 }
