@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing.Printing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using wooPrint.DesktopApp.ApiClient.Models;
@@ -14,9 +17,12 @@ namespace wooPrint.DesktopApp.Utils
     /// </summary>
     public static class PrinterUtil
     {
-        private static float PageWidth;
+        private static float _pageWidth;
         private static Order _orderInfo;
-        private static string _shopName = "";
+
+        private static readonly int _logoWith = 128;
+        private static readonly int _logoHeight = 128;
+
 
         /// <summary>
         /// </summary>
@@ -28,11 +34,6 @@ namespace wooPrint.DesktopApp.Utils
             {
                 _orderInfo = orderInfo;
 
-                var apiUrl = new Uri(ConfigurationManager.GetInstance().Config.ApiUrl);
-                _shopName = apiUrl.Segments.Length > 1 ? apiUrl.Segments[1].Trim('/') : "";
-                _shopName = _shopName.Replace("-", " ");
-                _shopName = _shopName.ToUpperInvariant();
-
                 var ps = new PrinterSettings();
                 var pdoc = new PrintDocument
                 {
@@ -41,7 +42,7 @@ namespace wooPrint.DesktopApp.Utils
                 pdoc.PrinterSettings.Copies = 1;
                 pdoc.DefaultPageSettings.Margins = new Margins(10, 10, 10, 10);
 
-                PageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
+                _pageWidth = pdoc.DefaultPageSettings.PrintableArea.Width;
 
                 pdoc.PrintPage += pdoc_PrintPage;
 
@@ -73,8 +74,8 @@ namespace wooPrint.DesktopApp.Utils
             var lineheight8 = font8.GetHeight() + leading;
             var lineheight10 = font10.GetHeight() + leading;
 
-            var char8Qty = (int) (PageWidth / 8);
-            var char10Qty = (int) (PageWidth / 10);
+            var char8Qty = (int) (_pageWidth / 8);
+            var char10Qty = (int) (_pageWidth / 10);
 
             float startX = 6;
             var startY = leading;
@@ -88,16 +89,27 @@ namespace wooPrint.DesktopApp.Utils
             formatRight.Alignment = StringAlignment.Far;
             formatLeft.Alignment = StringAlignment.Near;
 
-            var layoutSize = new SizeF(PageWidth - Offset * 2, lineheight10);
-            var layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-
             var brush = Brushes.Black;
+            var layoutSize = new SizeF(_pageWidth - Offset * 2, lineheight10);
 
             // HEADER
-            graphics.DrawString("The House Beer", font10, brush, layout, formatCenter);
+            if (!string.IsNullOrWhiteSpace(ConfigurationManager.GetInstance().Config.OrderLogoPath) &&
+                File.Exists(ConfigurationManager.GetInstance().Config.OrderLogoPath))
+            {
+                var imageLogo = Image.FromFile(ConfigurationManager.GetInstance().Config.OrderLogoPath);
+                imageLogo = ResizeImage(imageLogo, _logoWith, _logoHeight);
+
+                graphics.DrawImage(imageLogo, new PointF((int) (_pageWidth / 2 - _logoWith / 2), startY + Offset));
+                Offset += _logoHeight / 2 + lineheight8 + lineheight8;
+            }
+
+            var layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+            graphics.DrawString(ConfigurationManager.GetInstance().Config.OrderHeader, font10, brush, layout,
+                formatCenter);
             Offset += lineheight8;
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_shopName, font10, brush, layout, formatCenter);
+            graphics.DrawString(ConfigurationManager.GetInstance().Config.OrderSubHeader, font10, brush, layout,
+                formatCenter);
             Offset += lineheight10;
             Offset += lineheight10;
 
@@ -118,10 +130,10 @@ namespace wooPrint.DesktopApp.Utils
             Offset += lineheight8;
 
             // ORDER PRODUCTS
-            for (var i = 0; i < _orderInfo.line_items.Count; i++)
-            {
-                var item = _orderInfo.line_items[i];
+            var productList = BuildProductList(_orderInfo.line_items);
 
+            foreach (var item in productList)
+            {
                 var itemName = item.name;
                 if (itemName.Length > 24)
                     itemName = itemName.Substring(0, 24) + ".";
@@ -132,6 +144,24 @@ namespace wooPrint.DesktopApp.Utils
                 layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
                 graphics.DrawString(item.total + " " + euro, font8, brush, layout, formatRight);
                 Offset = Offset + lineheight8;
+
+                if (item.sub_products_items == null || item.sub_products_items.Count <= 0)
+                    continue;
+
+                foreach (var subItem in item.sub_products_items)
+                {
+                    var subItemName = subItem.name;
+                    if (subItemName.Length > 16)
+                        subItemName = subItemName.Substring(0, 16) + ".";
+
+                    layout = new RectangleF(new PointF(startX + 8, startY + Offset), layoutSize);
+                    graphics.DrawString("- " + subItemName + "  x" + subItem.quantity, font8, brush, layout,
+                        formatLeft);
+
+                    layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                    graphics.DrawString(subItem.total + " " + euro, font8, brush, layout, formatRight);
+                    Offset = Offset + lineheight8;
+                }
             }
 
             Offset += lineheight8;
@@ -158,7 +188,7 @@ namespace wooPrint.DesktopApp.Utils
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Método de Pago: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.payment_method_title, font8, brush, layout, formatRight);
+            graphics.DrawString(_orderInfo.payment_method_title.Substring(0, 24), font8, brush, layout, formatRight);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -181,8 +211,8 @@ namespace wooPrint.DesktopApp.Utils
             if (_orderInfo.meta_data != null && _orderInfo.meta_data.Count > 0)
             {
                 var deliveryDateObject = _orderInfo.meta_data
-                    .Where(i => i.key.Equals("pi_delivery_date", StringComparison.InvariantCultureIgnoreCase))
-                    .FirstOrDefault();
+                    .FirstOrDefault(i => i.key.Equals("pi_delivery_date", StringComparison.InvariantCultureIgnoreCase));
+
                 var deliveryDate = deliveryDateObject != null ? deliveryDateObject.value : "";
                 if (!string.IsNullOrWhiteSpace(deliveryDate))
                 {
@@ -194,8 +224,8 @@ namespace wooPrint.DesktopApp.Utils
                 }
 
                 var deliveryTimeObject = _orderInfo.meta_data
-                    .Where(i => i.key.Equals("pi_delivery_time", StringComparison.InvariantCultureIgnoreCase))
-                    .FirstOrDefault();
+                    .FirstOrDefault(i => i.key.Equals("pi_delivery_time", StringComparison.InvariantCultureIgnoreCase));
+
                 var deliveryTime = deliveryTimeObject != null ? deliveryTimeObject.value : "";
                 if (!string.IsNullOrWhiteSpace(deliveryTime))
                 {
@@ -283,7 +313,8 @@ namespace wooPrint.DesktopApp.Utils
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("THB", font8, brush, layout, formatCenter);
+            graphics.DrawString(ConfigurationManager.GetInstance().Config.OrderFooter, font8, brush, layout,
+                formatCenter);
             Offset += lineheight8;
 
             font8.Dispose();
@@ -292,10 +323,29 @@ namespace wooPrint.DesktopApp.Utils
 
         /// <summary>
         /// </summary>
+        /// <param name="orderInfoLineItems"></param>
+        /// <returns></returns>
+        private static IEnumerable<LineItem> BuildProductList(IEnumerable<LineItem> orderInfoLineItems)
+        {
+            var products = (from fc in orderInfoLineItems select fc).ToList();
+
+            var lookup = products.ToLookup(c => c.mnm_child_of);
+
+            foreach (var p in products)
+                if (lookup.Contains(p.id.ToString()))
+                    p.sub_products_items = lookup[p.id.ToString()].ToList();
+
+            products.RemoveAll(p => p.mnm_child_of != "");
+
+            return products;
+        }
+
+        /// <summary>
+        /// </summary>
         /// <param name="input"></param>
         /// <param name="rowLength"></param>
         /// <returns></returns>
-        public static string[] SplitLineToMultiline(string input, int rowLength)
+        private static IEnumerable<string> SplitLineToMultiline(string input, int rowLength)
         {
             var result = new List<string>();
             var line = new StringBuilder();
@@ -325,6 +375,38 @@ namespace wooPrint.DesktopApp.Utils
 
             result.Insert(0, line.ToString());
             return result.ToArray();
+        }
+
+        /// <summary>
+        ///     Resize the image to the specified width and height.
+        /// </summary>
+        /// <param name="image">The image to resize.</param>
+        /// <param name="width">The width to resize to.</param>
+        /// <param name="height">The height to resize to.</param>
+        /// <returns>The resized image.</returns>
+        public static Bitmap ResizeImage(Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
         }
     }
 }

@@ -105,5 +105,25 @@ namespace wooPrint.DesktopApp.Configuration
         ///     Store the date od the last checked order.
         /// </summary>
         public string LastOrderChecked { get; set; } = "";
+
+        /// <summary>
+        ///     Store the header printed in the order.
+        /// </summary>
+        public string OrderHeader { get; set; } = "";
+
+        /// <summary>
+        ///     Store the sub header printed in the order.
+        /// </summary>
+        public string OrderSubHeader { get; set; } = "";
+
+        /// <summary>
+        ///     Store the footer printed in the order.
+        /// </summary>
+        public string OrderFooter { get; set; } = "";
+
+        /// <summary>
+        ///     Store the path of the image of the order logo.
+        /// </summary>
+        public string OrderLogoPath { get; set; } = "";
     }
 }

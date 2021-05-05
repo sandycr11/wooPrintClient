@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -56,6 +58,14 @@ namespace wooPrint.DesktopApp
                 metroTextBoxUrl.Text = ConfigurationManager.GetInstance().Config.ApiUrl;
                 metroTextBoxApiKey.Text = ConfigurationManager.GetInstance().Config.ApiKey;
                 metroTextBoxApiSecret.Text = ConfigurationManager.GetInstance().Config.ApiSecret;
+
+                metroTextBoxOrderHeader.Text = ConfigurationManager.GetInstance().Config.OrderHeader;
+                metroTextBoxOrderSubHeader.Text = ConfigurationManager.GetInstance().Config.OrderSubHeader;
+                metroTextBoxOrderFooter.Text = ConfigurationManager.GetInstance().Config.OrderFooter;
+
+                var logoPath = ConfigurationManager.GetInstance().Config.OrderLogoPath;
+                if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
+                    pictureBoxTicketLogo.BackgroundImage = Image.FromFile(logoPath);
             }
             catch (Exception ex)
             {
@@ -112,6 +122,11 @@ namespace wooPrint.DesktopApp
                     ConfigurationManager.GetInstance().Config.ApiUrl = metroTextBoxUrl.Text;
                     ConfigurationManager.GetInstance().Config.ApiKey = metroTextBoxApiKey.Text;
                     ConfigurationManager.GetInstance().Config.ApiSecret = metroTextBoxApiSecret.Text;
+
+                    ConfigurationManager.GetInstance().Config.OrderHeader = metroTextBoxOrderHeader.Text;
+                    ConfigurationManager.GetInstance().Config.OrderSubHeader = metroTextBoxOrderSubHeader.Text;
+                    ConfigurationManager.GetInstance().Config.OrderFooter = metroTextBoxOrderFooter.Text;
+
                     ConfigurationManager.GetInstance().Config.LastOrderChecked = "";
 
                     ConfigurationManager.GetInstance().Save();
@@ -154,7 +169,7 @@ namespace wooPrint.DesktopApp
                 var ordersWatcherTrigger = TriggerBuilder
                     .Create()
                     .WithIdentity("ordersWatcherTrigger", "wooPrint")
-                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(30).RepeatForever())
+                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(20).RepeatForever())
                     .StartNow()
                     .Build();
 
@@ -194,6 +209,35 @@ namespace wooPrint.DesktopApp
         }
 
         #endregion Windows Message Handler
+
+        private void pictureBoxTicketLogo_Click(object sender, EventArgs e)
+        {
+            var dialogResult = openFileDialog.ShowDialog(this);
+            if (dialogResult == DialogResult.OK)
+            {
+                try
+                {
+                    var filePath = openFileDialog.FileName;
+                    if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                        return;
+
+                    var image = Image.FromFile(filePath);
+                    pictureBoxTicketLogo.BackgroundImage = image;
+
+                    ConfigurationManager.GetInstance().Config.OrderLogoPath = filePath;
+                }
+                catch (Exception exception)
+                {
+                    Trace.TraceError(exception.ToString());
+                }
+            }
+            else
+            {
+                pictureBoxTicketLogo.BackgroundImage = new Bitmap(1, 1);
+
+                ConfigurationManager.GetInstance().Config.OrderLogoPath = "";
+            }
+        }
 
         private delegate void Function();
     }

@@ -4,12 +4,11 @@ using System.Linq;
 namespace wooPrint.DesktopApp.Utils
 {
     /// <summary>
-    /// Utility class for perform validations.
+    ///     Utility class for perform validations.
     /// </summary>
     public static class ValidationsUtil
     {
         /// <summary>
-        ///
         /// </summary>
         /// <param name="text"></param>
         /// <param name="maxTimeOut"></param>
@@ -24,7 +23,6 @@ namespace wooPrint.DesktopApp.Utils
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -34,7 +32,6 @@ namespace wooPrint.DesktopApp.Utils
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -44,7 +41,6 @@ namespace wooPrint.DesktopApp.Utils
         }
 
         /// <summary>
-        ///
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

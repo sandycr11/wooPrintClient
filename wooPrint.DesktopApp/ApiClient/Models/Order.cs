@@ -61,6 +61,10 @@ namespace wooPrint.DesktopApp.ApiClient.Models
         public List<object> meta_data { get; set; }
         public string sku { get; set; }
         public double price { get; set; }
+        public string mnm_child_of { get; set; }
+        public List<int> mnm_child_items { get; set; }
+
+        public List<LineItem> sub_products_items { get; set; }
     }
 
     public class TaxLine

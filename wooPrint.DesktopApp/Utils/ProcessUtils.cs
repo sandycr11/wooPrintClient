@@ -10,7 +10,7 @@ namespace wooPrint.DesktopApp.Utils
     public static class ProcessUtils
     {
         public const int WM_USER = 0x400;
-        public const int WM_COPYDATA = 0x4A;
+        private const int WM_COPYDATA = 0x4A;
 
         public const string ProcessPassphrase = "restoreWindow";
 
