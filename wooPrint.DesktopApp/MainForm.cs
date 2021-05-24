@@ -75,6 +75,11 @@ namespace wooPrint.DesktopApp
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason != CloseReason.UserClosing)
@@ -169,7 +174,7 @@ namespace wooPrint.DesktopApp
                 var ordersWatcherTrigger = TriggerBuilder
                     .Create()
                     .WithIdentity("ordersWatcherTrigger", "wooPrint")
-                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(20).RepeatForever())
+                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(30).RepeatForever())
                     .StartNow()
                     .Build();
 
@@ -234,7 +239,6 @@ namespace wooPrint.DesktopApp
             else
             {
                 pictureBoxTicketLogo.BackgroundImage = new Bitmap(1, 1);
-
                 ConfigurationManager.GetInstance().Config.OrderLogoPath = "";
             }
         }

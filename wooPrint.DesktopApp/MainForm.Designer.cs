@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.metroStyleExtender = new MetroFramework.Components.MetroStyleExtender(this.components);
+            this.pictureBoxTicketLogo = new System.Windows.Forms.PictureBox();
             this.metroStyleManager = new MetroFramework.Components.MetroStyleManager(this.components);
             this.metroLabelURL = new MetroFramework.Controls.MetroLabel();
             this.metroTextBoxUrl = new MetroFramework.Controls.MetroTextBox();
@@ -44,21 +45,33 @@
             this.toolStripMenuItemExit = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxServerConfig = new System.Windows.Forms.GroupBox();
             this.groupBoxTicketaConfig = new System.Windows.Forms.GroupBox();
+            this.metroLabel1 = new MetroFramework.Controls.MetroLabel();
             this.metroTextBoxOrderHeader = new MetroFramework.Controls.MetroTextBox();
             this.metroLabelOrderHeader = new MetroFramework.Controls.MetroLabel();
             this.metroLabelOrderSubHeader = new MetroFramework.Controls.MetroLabel();
             this.metroTextBoxOrderSubHeader = new MetroFramework.Controls.MetroTextBox();
             this.metroLabelFooter = new MetroFramework.Controls.MetroLabel();
             this.metroTextBoxOrderFooter = new MetroFramework.Controls.MetroTextBox();
-            this.metroLabel1 = new MetroFramework.Controls.MetroLabel();
-            this.pictureBoxTicketLogo = new System.Windows.Forms.PictureBox();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTicketLogo)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.metroStyleManager)).BeginInit();
             this.metroContextMenu.SuspendLayout();
             this.groupBoxServerConfig.SuspendLayout();
             this.groupBoxTicketaConfig.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTicketLogo)).BeginInit();
             this.SuspendLayout();
+            // 
+            // pictureBoxTicketLogo
+            // 
+            this.metroStyleExtender.SetApplyMetroTheme(this.pictureBoxTicketLogo, true);
+            this.pictureBoxTicketLogo.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.pictureBoxTicketLogo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxTicketLogo.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.pictureBoxTicketLogo.Location = new System.Drawing.Point(145, 166);
+            this.pictureBoxTicketLogo.Name = "pictureBoxTicketLogo";
+            this.pictureBoxTicketLogo.Size = new System.Drawing.Size(342, 95);
+            this.pictureBoxTicketLogo.TabIndex = 7;
+            this.pictureBoxTicketLogo.TabStop = false;
+            this.pictureBoxTicketLogo.Click += new System.EventHandler(this.pictureBoxTicketLogo_Click);
             // 
             // metroStyleManager
             // 
@@ -260,6 +273,16 @@
             this.groupBoxTicketaConfig.TabStop = false;
             this.groupBoxTicketaConfig.Text = "Tickets Config";
             // 
+            // metroLabel1
+            // 
+            this.metroLabel1.AutoSize = true;
+            this.metroLabel1.FontWeight = MetroFramework.MetroLabelWeight.Regular;
+            this.metroLabel1.Location = new System.Drawing.Point(6, 166);
+            this.metroLabel1.Name = "metroLabel1";
+            this.metroLabel1.Size = new System.Drawing.Size(89, 20);
+            this.metroLabel1.TabIndex = 6;
+            this.metroLabel1.Text = "Ticket Logo:";
+            // 
             // metroTextBoxOrderHeader
             // 
             // 
@@ -383,29 +406,6 @@
             this.metroTextBoxOrderFooter.WaterMarkColor = System.Drawing.Color.FromArgb(((int)(((byte)(109)))), ((int)(((byte)(109)))), ((int)(((byte)(109)))));
             this.metroTextBoxOrderFooter.WaterMarkFont = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Pixel);
             // 
-            // metroLabel1
-            // 
-            this.metroLabel1.AutoSize = true;
-            this.metroLabel1.FontWeight = MetroFramework.MetroLabelWeight.Regular;
-            this.metroLabel1.Location = new System.Drawing.Point(6, 166);
-            this.metroLabel1.Name = "metroLabel1";
-            this.metroLabel1.Size = new System.Drawing.Size(89, 20);
-            this.metroLabel1.TabIndex = 6;
-            this.metroLabel1.Text = "Ticket Logo:";
-            // 
-            // pictureBoxTicketLogo
-            // 
-            this.metroStyleExtender.SetApplyMetroTheme(this.pictureBoxTicketLogo, true);
-            this.pictureBoxTicketLogo.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.pictureBoxTicketLogo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBoxTicketLogo.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.pictureBoxTicketLogo.Location = new System.Drawing.Point(145, 166);
-            this.pictureBoxTicketLogo.Name = "pictureBoxTicketLogo";
-            this.pictureBoxTicketLogo.Size = new System.Drawing.Size(342, 95);
-            this.pictureBoxTicketLogo.TabIndex = 7;
-            this.pictureBoxTicketLogo.TabStop = false;
-            this.pictureBoxTicketLogo.Click += new System.EventHandler(this.pictureBoxTicketLogo_Click);
-            // 
             // openFileDialog
             // 
             this.openFileDialog.FileName = "openFileDialog";
@@ -425,16 +425,16 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Resizable = false;
-            this.Text = "WooCommerce Printer v2.0";
+            this.Text = "WooCommerce Printer v2.1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTicketLogo)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.metroStyleManager)).EndInit();
             this.metroContextMenu.ResumeLayout(false);
             this.groupBoxServerConfig.ResumeLayout(false);
             this.groupBoxServerConfig.PerformLayout();
             this.groupBoxTicketaConfig.ResumeLayout(false);
             this.groupBoxTicketaConfig.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTicketLogo)).EndInit();
             this.ResumeLayout(false);
 
         }
