@@ -25,6 +25,13 @@ namespace wooPrint.DesktopApp
             ApplicationUtil.SetRunAtStartup("wooPrint",
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wooPrint.exe"));
 
+            //var logPath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            //    DateTime.UtcNow.ToString("yy-MM-dd") + ".log");
+            
+            //Trace.Listeners.Add(new TextWriterTraceListener(logPath, "myListener"));
+            //Trace.AutoFlush = true;
+
             var mutex = new Mutex(true, "wooPrint", out var mutexCreated);
             if (!mutexCreated)
             {
