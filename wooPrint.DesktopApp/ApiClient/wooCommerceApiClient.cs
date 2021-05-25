@@ -4,8 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Flurl;
-using Flurl.Http;
+using RestSharp;
 using wooPrint.DesktopApp.ApiClient.Models;
 using wooPrint.DesktopApp.Configuration;
 
@@ -25,10 +24,8 @@ namespace wooPrint.DesktopApp.ApiClient
         }
 
         /// <summary>
+        /// 
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="apiKey"></param>
-        /// <param name="apiSecret"></param>
         /// <returns></returns>
         public static WooCommerceApiClient GetInstance()
         {
@@ -42,19 +39,22 @@ namespace wooPrint.DesktopApp.ApiClient
         {
             try
             {
-                var url = ConfigurationManager.GetInstance().Config.ApiUrl;
+                var client = new RestClient(ConfigurationManager.GetInstance().Config.ApiUrl)
+                {
+                    Timeout = ConfigurationManager.GetInstance().Config.ApiTimeout * 1000
+                };
 
-                url = url.AppendPathSegment("orders")
-                    .SetQueryParam("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey)
-                    .SetQueryParam("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret)
-                    .SetQueryParam("status", "completed");
+                var getOrdersRequest = new RestRequest("orders");
+                getOrdersRequest.AddQueryParameter("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey);
+                getOrdersRequest.AddQueryParameter("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret);
+                getOrdersRequest.AddQueryParameter("status", "completed");
 
                 if (!string.IsNullOrWhiteSpace(afterDate))
-                    url = url.SetQueryParam("after", afterDate);
+                    getOrdersRequest.AddQueryParameter("after", afterDate);
 
-                var orders = await url.WithTimeout(ConfigurationManager.GetInstance().Config.ApiTimeout)
-                    .GetJsonAsync<List<Order>>();
-
+                var ordersResponse = await client.ExecuteAsync<List<Order>>(getOrdersRequest);
+                var orders = ordersResponse.Data;
+                
                 return orders;
             }
             catch (Exception ex)
@@ -72,18 +72,25 @@ namespace wooPrint.DesktopApp.ApiClient
         {
             try
             {
-                var notes = await ConfigurationManager.GetInstance().Config.ApiUrl
-                    .AppendPathSegment("orders/" + orderId + "/notes")
-                    .SetQueryParam("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey)
-                    .SetQueryParam("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret)
-                    .SetQueryParam("status", "completed")
-                    .SetQueryParam("type", "internal")
-                    .WithTimeout(ConfigurationManager.GetInstance().Config.ApiTimeout)
-                    .GetJsonAsync<List<Note>>();
+                var client = new RestClient(ConfigurationManager.GetInstance().Config.ApiUrl)
+                {
+                    Timeout = ConfigurationManager.GetInstance().Config.ApiTimeout * 1000
+                };
 
-                var allNotes = notes.ToArray();
+                var getNotesRequest = new RestRequest("orders/{orderId}/notes");
+                getNotesRequest.AddUrlSegment("orderId", orderId);
 
-                return allNotes.Any(n => n.note.Equals("Procesado", StringComparison.InvariantCultureIgnoreCase));
+                getNotesRequest.AddQueryParameter("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey);
+                getNotesRequest.AddQueryParameter("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret);
+                getNotesRequest.AddQueryParameter("status", "completed");
+                getNotesRequest.AddQueryParameter("type", "internal");
+                
+                var notesResponse = await client.ExecuteAsync<List<Note>>(getNotesRequest);
+                var allNotes = notesResponse.Data;
+
+                var isProcessed = allNotes.Any(n => n.note.Equals("Procesado", StringComparison.InvariantCultureIgnoreCase));
+
+                return isProcessed;
             }
             catch (Exception ex)
             {
@@ -100,17 +107,26 @@ namespace wooPrint.DesktopApp.ApiClient
         {
             try
             {
-                var result = await ConfigurationManager.GetInstance().Config.ApiUrl
-                    .AppendPathSegment("orders/" + orderId + "/notes")
-                    .SetQueryParam("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey)
-                    .SetQueryParam("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret)
-                    .WithTimeout(ConfigurationManager.GetInstance().Config.ApiTimeout)
-                    .PostJsonAsync(new
-                    {
-                        note = "Procesado"
-                    }).ReceiveJson<Note>();
+                var client = new RestClient(ConfigurationManager.GetInstance().Config.ApiUrl)
+                {
+                    Timeout = ConfigurationManager.GetInstance().Config.ApiTimeout * 1000
+                };
 
-                return result != null;
+                var postNoteRequest = new RestRequest("orders/{orderId}/notes", Method.POST, DataFormat.Json);
+                postNoteRequest.AddUrlSegment("orderId", orderId);
+
+                postNoteRequest.AddQueryParameter("consumer_key", ConfigurationManager.GetInstance().Config.ApiKey);
+                postNoteRequest.AddQueryParameter("consumer_secret", ConfigurationManager.GetInstance().Config.ApiSecret);
+
+                postNoteRequest.AddJsonBody(new
+                {
+                    note = "Procesado"
+                });
+
+                var notesResponse = await client.ExecuteAsync<Note>(postNoteRequest);
+                var noteResult = notesResponse.Data;
+
+                return noteResult != null;
             }
             catch (Exception ex)
             {
