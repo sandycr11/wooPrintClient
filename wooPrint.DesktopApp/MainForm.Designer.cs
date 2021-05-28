@@ -425,7 +425,7 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Resizable = false;
-            this.Text = "WooCommerce Printer v2.1";
+            this.Text = "WooCommerce Printer v2.2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTicketLogo)).EndInit();

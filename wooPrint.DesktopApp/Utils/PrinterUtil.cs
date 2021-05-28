@@ -188,7 +188,12 @@ namespace wooPrint.DesktopApp.Utils
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Método de Pago: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.payment_method_title.Substring(0, 24), font8, brush, layout, formatRight);
+
+            var payMethod = _orderInfo.payment_method_title;
+            if (payMethod.Length > 24)
+                payMethod = payMethod.Substring(0, 24);
+
+            graphics.DrawString(payMethod, font8, brush, layout, formatRight);
             Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
