@@ -123,9 +123,10 @@ namespace wooPrint.DesktopApp.Utils
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Número: " + _orderInfo.number, font8, brush, layout, formatLeft);
+            Offset += lineheight8;
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Fecha: " + _orderInfo.date_created.ToString("dd/MM/yyyy"), font8, brush, layout,
-                formatRight);
+                formatLeft);
             Offset += lineheight8;
             Offset += lineheight8;
 
@@ -167,12 +168,6 @@ namespace wooPrint.DesktopApp.Utils
             Offset += lineheight8;
 
             // ORDER TOTALS
-            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString("Subtotal: ", font8, brush, layout, formatLeft);
-            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.discount_total + " " + euro, font8, brush, layout, formatRight);
-            Offset += lineheight8;
-
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Envío: ", font8, brush, layout, formatLeft);
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -246,7 +241,7 @@ namespace wooPrint.DesktopApp.Utils
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("Notas: ", font8, brush, layout, formatLeft);
             Offset += lineheight8;
-            var noteLines = SplitLineToMultiline(_orderInfo.customer_note, 40);
+            var noteLines = SplitLineToMultiline(_orderInfo.customer_note, char8Qty);
             foreach (var line in noteLines)
             {
                 layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
@@ -261,6 +256,7 @@ namespace wooPrint.DesktopApp.Utils
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString("DIRECCION DE FACTURACION", font8, brush, layout, formatCenter);
             Offset += lineheight8;
+            Offset += lineheight8;
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString(_orderInfo.billing.first_name + " " + _orderInfo.billing.last_name, font8, brush,
@@ -274,10 +270,13 @@ namespace wooPrint.DesktopApp.Utils
                 Offset += lineheight8;
             }
 
-            layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
-            graphics.DrawString(_orderInfo.billing.address_1 + " " + _orderInfo.billing.address_2, font8, brush, layout,
-                formatLeft);
-            Offset += lineheight8;
+            var addressLine = SplitLineToMultiline(_orderInfo.billing.address_1 + " " + _orderInfo.billing.address_2, char8Qty);
+            foreach (var line in addressLine)
+            {
+                layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
+                graphics.DrawString(line, font8, brush, layout, formatLeft);
+                Offset += lineheight8;
+            }
 
             layout = new RectangleF(new PointF(startX, startY + Offset), layoutSize);
             graphics.DrawString(_orderInfo.billing.postcode + " " + _orderInfo.billing.city, font8, brush, layout,
@@ -355,7 +354,7 @@ namespace wooPrint.DesktopApp.Utils
             var result = new List<string>();
             var line = new StringBuilder();
 
-            var stack = new Stack<string>(input.Split(' '));
+            var stack = new Stack<string>(input.Split(' ').Reverse());
 
             while (stack.Count > 0)
             {
