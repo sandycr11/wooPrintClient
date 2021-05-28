@@ -354,7 +354,12 @@ namespace wooPrint.DesktopApp.Utils
             var result = new List<string>();
             var line = new StringBuilder();
 
-            var stack = new Stack<string>(input.Split(' ').Reverse());
+            var stackR = new Stack<string>(input.Split(' '));
+            var stack = new Stack<string>();
+            while (stackR.Count != 0)
+            {
+                stack.Push(stackR.Pop());
+            }
 
             while (stack.Count > 0)
             {
@@ -370,14 +375,14 @@ namespace wooPrint.DesktopApp.Utils
 
                 if (line.Length + word.Length > rowLength)
                 {
-                    result.Insert(0, line.ToString());
+                    result.Add(line.ToString());
                     line.Clear();
                 }
 
-                line.Insert(0, word + " ");
+                line.Append(word + " ");
             }
 
-            result.Insert(0, line.ToString());
+            result.Add(line.ToString());
             return result.ToArray();
         }
 
